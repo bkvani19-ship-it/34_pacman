@@ -90,7 +90,7 @@ def on_pellet_eaten(score, pellets_left):
 def bonus_life_threshold():
     """Award an extra life whenever the score reaches another 10,000 points."""
 
-    pass
+    return 10000
 
 
 def is_wall(cell):
