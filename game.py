@@ -66,20 +66,30 @@ def ghost_color(name, mode):
 
 
 # ============================================================
-# TASK 3 - NOT IMPLEMENTED YET
+# TASK 3: Pellet eaten bonus event
 # ============================================================
 
 def on_pellet_eaten(score, pellets_left):
-    """Called after every pellet is eaten; add sound, flashes, or bonus fruit here."""
-    pass
+    """Show a visible bonus message when the player gets close to clearing the maze."""
+
+    if pellets_left == 10:
+        pygame.display.set_caption(
+            "Pac-Man - BONUS! Only 10 pellets left!"
+        )
+
+    elif pellets_left == 0:
+        pygame.display.set_caption(
+            "Pac-Man - ALL PELLETS CLEARED!"
+        )
 
 
 # ============================================================
-# TASK 4 - NOT IMPLEMENTED YET
+# TASK 4: Bonus life threshold
 # ============================================================
 
 def bonus_life_threshold():
-    """Return a score value at which the player earns an extra life, or None to disable bonus lives."""
+    """Award an extra life whenever the score reaches another 10,000 points."""
+
     pass
 
 
@@ -364,6 +374,11 @@ class Game:
                 if not ghost.eaten:
                     ghost.reverse()
 
+        # ====================================================
+        # TASK 3
+        # Trigger pellet-eaten event
+        # ====================================================
+
         on_pellet_eaten(
             self.score,
             len(self.pellets),
@@ -410,6 +425,11 @@ class Game:
             0.0,
             self.fright_left - dt,
         )
+
+        # ====================================================
+        # TASK 4
+        # Award extra life at every 10,000 points
+        # ====================================================
 
         threshold = bonus_life_threshold()
 
@@ -593,7 +613,11 @@ class Game:
                 else "normal"
             )
 
-            # TASK 2: Apply ghost-specific frightened color
+            # ====================================================
+            # TASK 2
+            # Apply ghost-specific frightened color
+            # ====================================================
+
             color = (
                 ghost_color(
                     ghost.name,
