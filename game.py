@@ -3,6 +3,7 @@ import pygame
 
 
 TILE = 28
+
 MAZE = [
     "#####################",
     "#o........#........o#",
@@ -22,29 +23,60 @@ MAZE = [
 
 ROWS, COLS = len(MAZE), len(MAZE[0])
 W, H = COLS * TILE, ROWS * TILE + 32
-DIRS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+DIRS = [
+    (-1, 0),
+    (1, 0),
+    (0, -1),
+    (0, 1),
+]
+
 KEY_DIRS = {
     pygame.K_UP: (-1, 0),
     pygame.K_DOWN: (1, 0),
     pygame.K_LEFT: (0, -1),
     pygame.K_RIGHT: (0, 1),
 }
+
 HOUSE_CELLS = {(8, 10), (9, 9), (9, 10), (9, 11)}
 HOUSE_EXIT, HOUSE_CENTER = (7, 10), (9, 10)
 PLAYER_START = (11, 10)
+
 FRIGHT_SECONDS = 3.0
 PLAYER_STEP, GHOST_STEP = 0.14, 0.17
 
 
+# ============================================================
+# TASK 2: Ghost color
+# ============================================================
+
 def ghost_color(name, mode):
     """Return an (r, g, b) colour override for a ghost, or None to keep the default."""
-    pass
 
+    if mode == "frightened":
+        colors = {
+            "blinky": (80, 160, 255),
+            "pinky": (100, 200, 255),
+            "inky": (60, 140, 220),
+            "clyde": (120, 180, 255),
+        }
+        return colors.get(name)
+
+    return None
+
+
+# ============================================================
+# TASK 3 - NOT IMPLEMENTED YET
+# ============================================================
 
 def on_pellet_eaten(score, pellets_left):
     """Called after every pellet is eaten; add sound, flashes, or bonus fruit here."""
     pass
 
+
+# ============================================================
+# TASK 4 - NOT IMPLEMENTED YET
+# ============================================================
 
 def bonus_life_threshold():
     """Return a score value at which the player earns an extra life, or None to disable bonus lives."""
@@ -53,7 +85,11 @@ def bonus_life_threshold():
 
 def is_wall(cell):
     row, col = cell
-    return not (0 <= row < ROWS and 0 <= col < COLS) or MAZE[row][col] == "#"
+
+    return (
+        not (0 <= row < ROWS and 0 <= col < COLS)
+        or MAZE[row][col] == "#"
+    )
 
 
 def target_for_pinky(player, direction):
@@ -64,18 +100,20 @@ def target_for_pinky(player, direction):
 
 
 def distance_sq(a, b):
-    return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
+    return (
+        (a[0] - b[0]) ** 2
+        + (a[1] - b[1]) ** 2
+    )
 
 
 class Ghost:
+
     def __init__(self, name, color, start, corner, release):
-        self.name, self.color, self.start, self.corner, self.release = (
-            name,
-            color,
-            start,
-            corner,
-            release,
-        )
+        self.name = name
+        self.color = color
+        self.start = start
+        self.corner = corner
+        self.release = release
         self.reset()
 
     def reset(self):
@@ -86,6 +124,7 @@ class Ghost:
         self.timer = 0.0
 
     def target(self, player, direction, blinky, chase):
+
         if self.eaten:
             return HOUSE_CENTER
 
@@ -103,13 +142,18 @@ class Ghost:
                 player[0] + direction[0] * 2,
                 player[1] + direction[1] * 2,
             )
+
             return (
                 2 * ahead[0] - blinky.pos[0],
                 2 * ahead[1] - blinky.pos[1],
             )
 
         if self.name == "clyde":
-            return self.corner if distance_sq(self.pos, player) < 64 else player
+            return (
+                self.corner
+                if distance_sq(self.pos, player) < 64
+                else player
+            )
 
         return player
 
@@ -117,6 +161,7 @@ class Ghost:
         result = []
 
         for d in DIRS:
+
             cell = (
                 self.pos[0] + d[0],
                 self.pos[1] + d[1],
@@ -134,12 +179,20 @@ class Ghost:
 
             result.append(d)
 
-        back = (-self.direction[0], -self.direction[1])
-        forward = [d for d in result if d != back]
+        back = (
+            -self.direction[0],
+            -self.direction[1],
+        )
+
+        forward = [
+            d for d in result
+            if d != back
+        ]
 
         return forward or result
 
     def step(self, target, frightened):
+
         choices = self.options()
 
         if not choices:
@@ -147,6 +200,7 @@ class Ghost:
 
         if frightened and not self.eaten:
             self.direction = random.choice(choices)
+
         else:
             self.direction = min(
                 choices,
@@ -175,8 +229,11 @@ class Ghost:
 
 
 class Game:
+
     def __init__(self):
+
         self.ghosts = [
+
             Ghost(
                 "blinky",
                 (255, 40, 40),
@@ -184,6 +241,7 @@ class Game:
                 (0, COLS - 1),
                 0.0,
             ),
+
             Ghost(
                 "pinky",
                 (255, 150, 200),
@@ -191,6 +249,7 @@ class Game:
                 (0, 0),
                 2.0,
             ),
+
             Ghost(
                 "inky",
                 (60, 220, 230),
@@ -198,6 +257,7 @@ class Game:
                 (ROWS - 1, COLS - 1),
                 5.0,
             ),
+
             Ghost(
                 "clyde",
                 (255, 170, 40),
@@ -210,6 +270,7 @@ class Game:
         self.reset()
 
     def reset(self):
+
         self.pellets = {
             (r, c)
             for r, line in enumerate(MAZE)
@@ -218,6 +279,7 @@ class Game:
         }
 
         self.player = list(PLAYER_START)
+
         self.direction = (0, 1)
         self.desired = (0, 1)
 
@@ -226,6 +288,7 @@ class Game:
         self.state = "play"
 
         self.bonus_awarded = 0
+
         self.clock_time = 0.0
         self.fright_left = 0.0
         self.player_acc = 0.0
@@ -235,9 +298,12 @@ class Game:
             ghost.reset()
 
     def respawn(self):
+
         self.player = list(PLAYER_START)
+
         self.direction = (0, 1)
         self.desired = (0, 1)
+
         self.fright_left = 0.0
 
         for ghost in self.ghosts:
@@ -249,49 +315,83 @@ class Game:
         return (self.clock_time % 27) >= 7
 
     def move_player(self):
-        for d in (self.desired, self.direction):
+
+        for d in (
+            self.desired,
+            self.direction,
+        ):
+
             cell = (
                 self.player[0] + d[0],
                 self.player[1] + d[1],
             )
 
-            if not is_wall(cell) and cell not in HOUSE_CELLS:
+            if (
+                not is_wall(cell)
+                and cell not in HOUSE_CELLS
+            ):
+
                 self.direction = d
+
                 self.player[:] = cell
+
                 self.eat(tuple(cell))
+
                 return
 
     def eat(self, cell):
+
         if cell not in self.pellets:
             return
 
         self.pellets.remove(cell)
+
         self.score += 10
 
-        # FIX: Power pellets are represented by lowercase "o" in MAZE.
+        # ====================================================
+        # TASK 1 FIX
+        # Power pellets in MAZE use lowercase "o"
+        # ====================================================
+
         if MAZE[cell[0]][cell[1]] == "o":
+
             self.score += 40
+
             self.fright_left = FRIGHT_SECONDS
 
             for ghost in self.ghosts:
+
                 if not ghost.eaten:
                     ghost.reverse()
 
-        on_pellet_eaten(self.score, len(self.pellets))
+        on_pellet_eaten(
+            self.score,
+            len(self.pellets),
+        )
 
         if not self.pellets:
             self.state = "win"
 
     def check_collisions(self):
+
         for ghost in self.ghosts:
-            if ghost.pos != tuple(self.player) or ghost.eaten:
+
+            if (
+                ghost.pos != tuple(self.player)
+                or ghost.eaten
+            ):
                 continue
 
             if self.fright_left > 0:
+
                 ghost.eaten = True
+
                 self.score += 200
+
             else:
+
                 self.lives -= 1
+
                 self.respawn()
 
                 if self.lives <= 0:
@@ -300,37 +400,58 @@ class Game:
                 return
 
     def update(self, dt):
+
         if self.state != "play":
             return
 
         self.clock_time += dt
-        self.fright_left = max(0.0, self.fright_left - dt)
+
+        self.fright_left = max(
+            0.0,
+            self.fright_left - dt,
+        )
 
         threshold = bonus_life_threshold()
 
-        if threshold and self.score // threshold > self.bonus_awarded:
-            self.bonus_awarded = self.score // threshold
+        if (
+            threshold
+            and self.score // threshold > self.bonus_awarded
+        ):
+
+            self.bonus_awarded = (
+                self.score // threshold
+            )
+
             self.lives += 1
 
         self.player_acc += dt
 
         while self.player_acc >= PLAYER_STEP:
+
             self.player_acc -= PLAYER_STEP
+
             self.move_player()
+
             self.check_collisions()
 
         self.ghost_acc += dt
 
         while self.ghost_acc >= GHOST_STEP:
+
             self.ghost_acc -= GHOST_STEP
 
             for ghost in self.ghosts:
+
                 if self.clock_time < ghost.release:
                     continue
 
-                scared = self.fright_left > 0 and not ghost.eaten
+                scared = (
+                    self.fright_left > 0
+                    and not ghost.eaten
+                )
 
                 if scared:
+
                     ghost.skip = not ghost.skip
 
                     if ghost.skip:
@@ -349,10 +470,13 @@ class Game:
             self.check_collisions()
 
     def draw(self, screen, font):
+
         screen.fill((5, 5, 30))
 
         for r, line in enumerate(MAZE):
+
             for c, value in enumerate(line):
+
                 rect = pygame.Rect(
                     c * TILE,
                     r * TILE,
@@ -361,6 +485,7 @@ class Game:
                 )
 
                 if value == "#":
+
                     pygame.draw.rect(
                         screen,
                         (20, 80, 180),
@@ -369,6 +494,7 @@ class Game:
                     )
 
                 elif (r, c) in self.pellets:
+
                     pygame.draw.circle(
                         screen,
                         (255, 220, 120),
@@ -376,8 +502,15 @@ class Game:
                         3 if value == "." else 7,
                     )
 
-        px = self.player[1] * TILE + TILE // 2
-        py = self.player[0] * TILE + TILE // 2
+        px = (
+            self.player[1] * TILE
+            + TILE // 2
+        )
+
+        py = (
+            self.player[0] * TILE
+            + TILE // 2
+        )
 
         pygame.draw.circle(
             screen,
@@ -386,23 +519,38 @@ class Game:
             TILE // 2 - 2,
         )
 
-        mouth = pygame.Vector2(
-            self.direction[1],
-            self.direction[0],
-        ) * (TILE // 2)
+        mouth = (
+            pygame.Vector2(
+                self.direction[1],
+                self.direction[0],
+            )
+            * (TILE // 2)
+        )
 
-        if int(self.clock_time * 6) % 2 == 0 and mouth.length() > 0:
-            side = pygame.Vector2(-mouth.y, mouth.x) * 0.6
+        if (
+            int(self.clock_time * 6) % 2 == 0
+            and mouth.length() > 0
+        ):
+
+            side = (
+                pygame.Vector2(
+                    -mouth.y,
+                    mouth.x,
+                )
+                * 0.6
+            )
 
             pygame.draw.polygon(
                 screen,
                 (5, 5, 30),
                 [
                     (px, py),
+
                     (
                         px + mouth.x + side.x,
                         py + mouth.y + side.y,
                     ),
+
                     (
                         px + mouth.x - side.x,
                         py + mouth.y - side.y,
@@ -411,16 +559,29 @@ class Game:
             )
 
         for ghost in self.ghosts:
-            gx = ghost.pos[1] * TILE + TILE // 2
-            gy = ghost.pos[0] * TILE + TILE // 2
+
+            gx = (
+                ghost.pos[1] * TILE
+                + TILE // 2
+            )
+
+            gy = (
+                ghost.pos[0] * TILE
+                + TILE // 2
+            )
 
             color = ghost.color
 
             if self.fright_left > 0:
+
                 color = (
                     (240, 240, 240)
-                    if self.fright_left < 1
-                    and int(self.fright_left * 6) % 2
+                    if (
+                        self.fright_left < 1
+                        and int(
+                            self.fright_left * 6
+                        ) % 2
+                    )
                     else (40, 60, 230)
                 )
 
@@ -432,9 +593,17 @@ class Game:
                 else "normal"
             )
 
-            color = ghost_color(ghost.name, mode) or color
+            # TASK 2: Apply ghost-specific frightened color
+            color = (
+                ghost_color(
+                    ghost.name,
+                    mode,
+                )
+                or color
+            )
 
             if ghost.eaten:
+
                 pygame.draw.circle(
                     screen,
                     (240, 240, 240),
@@ -450,6 +619,7 @@ class Game:
                 )
 
             else:
+
                 pygame.draw.circle(
                     screen,
                     color,
@@ -494,6 +664,7 @@ class Game:
         )
 
         if self.state != "play":
+
             text = (
                 "YOU WIN! Press R"
                 if self.state == "win"
@@ -515,33 +686,56 @@ class Game:
 
 
 def main():
+
     pygame.init()
 
-    screen = pygame.display.set_mode((W, H))
-    pygame.display.set_caption("Pac-Man")
+    screen = pygame.display.set_mode(
+        (W, H)
+    )
+
+    pygame.display.set_caption(
+        "Pac-Man"
+    )
 
     clock = pygame.time.Clock()
-    font = pygame.font.Font(None, 26)
+
+    font = pygame.font.Font(
+        None,
+        26,
+    )
 
     game = Game()
+
     running = True
 
     while running:
+
         dt = clock.tick(60) / 1000
 
         for event in pygame.event.get():
+
             if event.type == pygame.QUIT:
+
                 running = False
 
             elif event.type == pygame.KEYDOWN:
+
                 if event.key in KEY_DIRS:
-                    game.desired = KEY_DIRS[event.key]
+
+                    game.desired = KEY_DIRS[
+                        event.key
+                    ]
 
                 elif event.key == pygame.K_r:
+
                     game.reset()
 
         game.update(dt)
-        game.draw(screen, font)
+
+        game.draw(
+            screen,
+            font,
+        )
 
         pygame.display.flip()
 
